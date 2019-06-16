@@ -1,0 +1,25 @@
+# JVM crash related
+core.*
+hs_err_pid*
+
+# IntelliJ IDEA
+*.iml
+*.ipr
+*.iws
+.idea/
+out/
+
+# Eclipse
+.classpath
+.project
+.settings
+
+# Maven
+target/
+dependency-reduced-pom.xml
+
+# Gradle
+!gradle-wrapper.jar
+.gradle/
+build/
+*/build/
