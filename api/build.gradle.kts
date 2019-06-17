@@ -30,6 +30,14 @@ publishing {
     }
 
     repositories {
+        if (rootProject.hasProperty("crafteduniverse.repository.deploy.username") && rootProject.hasProperty("crafteduniverse.repository.deploy.password")) {
+            maven("https://maven.cu-mc.com/repository/cu-repo") {
+                credentials {
+                    username = rootProject.property("crafteduniverse.repository.deploy.username") as String
+                    password = rootProject.property("crafteduniverse.repository.deploy.password") as String
+                }
+            }
+        }
         mavenLocal()
     }
 }
