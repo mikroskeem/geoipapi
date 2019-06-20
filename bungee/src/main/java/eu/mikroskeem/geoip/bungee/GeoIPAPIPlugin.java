@@ -46,6 +46,9 @@ public final class GeoIPAPIPlugin extends Plugin {
         }
 
         getSLF4JLogger().info("GeoIP API initialized. API data is provided by MaxMind");
+
+        // Register commands
+        getProxy().getPluginManager().registerCommand(this, new GeoIpLookupCommand());
     }
 
     @Override

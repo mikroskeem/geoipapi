@@ -9,9 +9,13 @@ package eu.mikroskeem.geoip.bukkit;
 import eu.mikroskeem.geoip.common.GeoIPDownloader;
 import eu.mikroskeem.geoip.impl.GeoIPAPIImpl;
 import eu.mikroskeem.geoip.impl.ImplInjector;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.PluginCommand;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.nio.file.Path;
+import java.util.function.Supplier;
 
 /**
  * @author Mark Vainomaa
@@ -46,6 +50,9 @@ public final class GeoIPAPIPlugin extends JavaPlugin {
         }
 
         getSLF4JLogger().info("GeoIP API initialized. API data is provided by MaxMind");
+
+        // Register commands
+        registerCommand("geoiplookup", GeoIPAPIPlugin::new);
     }
 
     @Override
@@ -62,5 +69,18 @@ public final class GeoIPAPIPlugin extends JavaPlugin {
             return;
 
         api.close();
+    }
+
+    private void registerCommand(String name, Supplier<CommandExecutor> executor) {
+        PluginCommand command = getCommand(name);
+        if (command == null) {
+            getSLF4JLogger().warn("Command {} is not registered in plugin.yml!", name);
+            return;
+        }
+        CommandExecutor commandExecutor = executor.get();
+        command.setExecutor(commandExecutor);
+        if (commandExecutor instanceof TabCompleter) {
+            command.setTabCompleter((TabCompleter) commandExecutor);
+        }
     }
 }
