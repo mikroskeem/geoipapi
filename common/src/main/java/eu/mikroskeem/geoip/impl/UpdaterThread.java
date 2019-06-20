@@ -36,6 +36,7 @@ public class UpdaterThread extends Thread {
     public void run() {
         while (true) {
             // Do update check
+            logger.info("Checking for database update...");
             update: {
                 // Get local database hash
                 Path databaseFile = this.apiImpl.getDatabaseFile();
@@ -60,6 +61,7 @@ public class UpdaterThread extends Thread {
 
                 if (localDatabaseHash != null && localDatabaseHash.equalsIgnoreCase(remoteDatabaseHash)) {
                     // No updates
+                    logger.info("No update available");
                     break update;
                 }
 
