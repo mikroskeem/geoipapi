@@ -49,8 +49,14 @@ public final class GeoIpLookupCommand extends Command implements TabExecutor {
             }
         }
 
+        String readableAddress = address != null ? address.getHostAddress() : "(null?)";
         (address != null ? GeoIPAPI.INSTANCE.getCountryByIPAsync(address) : CompletableFuture.completedFuture("(unknown)")).thenAcceptAsync(countryCode -> {
-            sender.sendMessage(new TextComponent("Address " + (address != null ? address.getHostAddress() : "(null?)") + " country: " + countryCode));
+            sender.sendMessage(new TextComponent("Address " + readableAddress + " country: " + countryCode));
+        }).exceptionally(throwable -> {
+            sender.sendMessage(new TextComponent("Failed to get " + readableAddress + " country: " + throwable.getMessage()));
+            ProxyServer.getInstance().getPluginManager().getPlugin("GeoIPAPI").getSLF4JLogger()
+                    .warn("Failed to get {} country", readableAddress, throwable);
+            return null;
         });
     }
 

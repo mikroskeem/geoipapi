@@ -15,6 +15,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.StringUtil;
 
 import java.net.InetAddress;
@@ -49,8 +50,13 @@ public final class GeoIpLookupCommand implements CommandExecutor, TabCompleter {
             }
         }
 
+        String readableAddress = address != null ? address.getHostAddress() : "(null?)";
         (address != null ? GeoIPAPI.INSTANCE.getCountryByIPAsync(address) : CompletableFuture.completedFuture("(unknown)")).thenAcceptAsync(countryCode -> {
-            sender.sendMessage("Address " + (address != null ? address.getHostAddress() : "(null?)") + " country: " + countryCode);
+            sender.sendMessage("Address " + readableAddress + " country: " + countryCode);
+        }).exceptionally(throwable -> {
+            sender.sendMessage("Failed to get " + readableAddress + " country: " + throwable.getMessage());
+            JavaPlugin.getPlugin(GeoIPAPIPlugin.class).getSLF4JLogger().warn("Failed to get {} country", readableAddress, throwable);
+            return null;
         });
 
         return true;
