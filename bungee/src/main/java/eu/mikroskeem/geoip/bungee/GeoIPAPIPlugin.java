@@ -12,6 +12,7 @@ import eu.mikroskeem.geoip.impl.ImplInjector;
 import net.md_5.bungee.api.plugin.Plugin;
 
 import java.nio.file.Path;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Mark Vainomaa
@@ -27,7 +28,7 @@ public final class GeoIPAPIPlugin extends Plugin {
         Path databaseFolder = getDataFolder().toPath().resolve("database");
         Path databaseFile;
         try {
-            databaseFile = GeoIPDownloader.setupDatabase(databaseFolder);
+            databaseFile = GeoIPDownloader.setupDatabase(null, databaseFolder);
         } catch (Exception e) {
             getSLF4JLogger().error("Failed to set up GeoIP database! Disabling plugin", e);
             shouldEnable = false;
@@ -37,6 +38,8 @@ public final class GeoIPAPIPlugin extends Plugin {
         // Set up API
         api = new GeoIPAPIImpl(databaseFile);
         try {
+            api.initializeDatabase();
+            api.setupUpdater(2, TimeUnit.DAYS);
             ImplInjector.initialize();
             ImplInjector.setApi(api);
         } catch (Exception e) {

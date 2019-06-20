@@ -11,6 +11,7 @@ extra["geoipVersion"] = "2.12.0"
 extra["commonsCompressVersion"] = "1.18"
 extra["expiringMapVersion"] = "0.5.9"
 extra["slf4jApiVersion"] = "1.7.25"
+extra["throwableFunctionVersion"] = "1.5.0"
 
 // Platform versions
 extra["paperApiVersion"] = "1.14.2-R0.1-SNAPSHOT"
@@ -49,6 +50,7 @@ val shadowJar by tasks.getting(ShadowJar::class) {
     val relocations = listOf(
             "com.fasterxml.jackson",
             "com.maxmind",
+            "com.pivovarit.function",
             "net.jodah.expiringmap",
             "org.apache.commons.compress"
     )

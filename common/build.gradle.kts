@@ -7,4 +7,5 @@ dependencies {
     }
     implementation("org.apache.commons:commons-compress:${rootProject.extra["commonsCompressVersion"]}")
     implementation("net.jodah:expiringmap:${rootProject.extra["expiringMapVersion"]}")
+    implementation("com.pivovarit:throwing-function:${rootProject.extra["throwableFunctionVersion"]}")
 }

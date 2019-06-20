@@ -21,6 +21,7 @@ import java.net.InetAddress;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
@@ -35,7 +36,7 @@ public final class GeoIpLookupCommand implements CommandExecutor, TabCompleter {
         }
 
         String name = args[0];
-        InetAddress address = null;
+        final InetAddress address;
         Player player;
         if ((player = Bukkit.getOnlinePlayers().stream().filter(p -> p.getName().equals(name)).findFirst().orElse(null)) != null) {
             address = player.getAddress().getAddress(); // TODO: why is this nullable?
@@ -48,12 +49,9 @@ public final class GeoIpLookupCommand implements CommandExecutor, TabCompleter {
             }
         }
 
-        String countryCode = address != null ? GeoIPAPI.INSTANCE.getCountryByIP(address) : null;
-        if (countryCode == null) {
-            countryCode = "(unknown)";
-        }
-
-        sender.sendMessage("Address " + (address != null ? address.getHostAddress() : "(null?)") + " country: " + countryCode);
+        (address != null ? GeoIPAPI.INSTANCE.getCountryByIPAsync(address) : CompletableFuture.completedFuture("(unknown)")).thenAcceptAsync(countryCode -> {
+            sender.sendMessage("Address " + (address != null ? address.getHostAddress() : "(null?)") + " country: " + countryCode);
+        });
 
         return true;
     }

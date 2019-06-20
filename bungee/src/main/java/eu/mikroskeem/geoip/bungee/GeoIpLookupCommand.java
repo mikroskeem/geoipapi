@@ -17,6 +17,7 @@ import net.md_5.bungee.api.plugin.TabExecutor;
 
 import java.net.InetAddress;
 import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
@@ -35,7 +36,7 @@ public final class GeoIpLookupCommand extends Command implements TabExecutor {
         }
 
         String name = args[0];
-        InetAddress address = null;
+        final InetAddress address;
         ProxiedPlayer player;
         if ((player = ProxyServer.getInstance().getPlayers().stream().filter(p -> p.getName().equals(name)).findFirst().orElse(null)) != null) {
             address = player.getAddress().getAddress(); // TODO: why is this nullable?
@@ -48,12 +49,9 @@ public final class GeoIpLookupCommand extends Command implements TabExecutor {
             }
         }
 
-        String countryCode = address != null ? GeoIPAPI.INSTANCE.getCountryByIP(address) : null;
-        if (countryCode == null) {
-            countryCode = "(unknown)";
-        }
-
-        sender.sendMessage(new TextComponent("Address " + (address != null ? address.getHostAddress() : "(null?)") + " country: " + countryCode));
+        (address != null ? GeoIPAPI.INSTANCE.getCountryByIPAsync(address) : CompletableFuture.completedFuture("(unknown)")).thenAcceptAsync(countryCode -> {
+            sender.sendMessage(new TextComponent("Address " + (address != null ? address.getHostAddress() : "(null?)") + " country: " + countryCode));
+        });
     }
 
     @Override

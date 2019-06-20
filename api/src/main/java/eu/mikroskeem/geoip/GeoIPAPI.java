@@ -11,6 +11,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.net.InetAddress;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Geo IP API
@@ -35,6 +36,24 @@ public interface GeoIPAPI {
      */
     @Nullable
     String getCountryByIP(@NonNull String ipAddress);
+
+    /**
+     * Gets country by IP asynchronously
+     *
+     * @param ipAddress IP address to query
+     * @return Country ISO code, or null if no country was found for given address
+     */
+    @NonNull
+    CompletableFuture<@Nullable String> getCountryByIPAsync(@NonNull InetAddress ipAddress);
+
+    /**
+     * Gets country by IP asynchronously
+     *
+     * @param ipAddress IP address in a string form to query
+     * @return Country ISO code, or null if no country was found for given address
+     */
+    @NonNull
+    CompletableFuture<@Nullable String> getCountryByIPAsync(@NonNull String ipAddress);
 
     /**
      * Instance of {@link GeoIPAPI} - initialized on runtime

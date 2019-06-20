@@ -23,8 +23,10 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
@@ -41,29 +43,30 @@ public final class GeoIPDownloader {
     private final static String DATABASE_URL_MD5 = "https://geolite.maxmind.com/download/geoip/database/GeoLite2-Country.tar.gz.md5";
     /* GeoIP database name on local filesystem */
     private final static String DATABASE_FILE_NAME = "geoip-country.db";
+    /* Last downloaded archive md5sum */
+    public final static String LAST_ARCHIVE_MD5 = "last-downloaded.md5";
     /* GeoIP database name in archive */
     private final static String DATABASE_FILE_NAME_IN_ARCHIVE = "GeoLite2-Country.mmdb";
 
     /**
      * Sets up database to specified directory
      *
+     * @param remoteHash Expected database archive md5 checksum,.
      * @param directory Directory where database should be in
      * @throws IOException When any I/O error happens
      */
-    public static Path setupDatabase(Path directory) throws IOException {
+    public static Path setupDatabase(String remoteHash, Path directory) throws IOException {
         Files.createDirectories(directory);
 
         Path databaseFile = directory.resolve(DATABASE_FILE_NAME);
+        Path databaseArchiveChecksumFile = directory.resolve(LAST_ARCHIVE_MD5);
         if (Files.exists(databaseFile))
             return databaseFile;
         logger.trace("Database file {} does not exist, downloading from {}", databaseFile, DATABASE_URL);
 
-        String remoteHash;
-        // Download md5 checksum
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new URL(DATABASE_URL_MD5).openStream()))) {
-            remoteHash = reader.lines().collect(Collectors.joining("\n"));
-        } catch (ConnectException e) {
-            throw new IOException("Failed to connect to " + DATABASE_URL_MD5, e);
+        // Download md5 checksum if not set
+        if (remoteHash == null) {
+            remoteHash = getRemoteDatabaseMd5Hash();
         }
 
         // Download database
@@ -106,7 +109,26 @@ public final class GeoIPDownloader {
             throw new IOException("Failed to connect to " + DATABASE_URL, e);
         }
 
+        // Write database md5sum
+        Files.write(databaseArchiveChecksumFile, remoteHash.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+
         return databaseFile;
+    }
+
+    public static String getRemoteDatabaseMd5Hash() throws IOException {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new URL(DATABASE_URL_MD5).openStream()))) {
+            return reader.lines().collect(Collectors.joining("\n")).trim();
+        } catch (ConnectException e) {
+            throw new IOException("Failed to connect to " + DATABASE_URL_MD5, e);
+        }
+    }
+
+    public static String getLocalDatabaseMd5Hash(Path databaseDirectory) throws IOException {
+        Path checksumFile = databaseDirectory.resolve(LAST_ARCHIVE_MD5);
+        if (Files.exists(checksumFile)) {
+            return new String(Files.readAllBytes(checksumFile));
+        }
+        return null;
     }
 
     private static String toHexString(byte[] bytes) {

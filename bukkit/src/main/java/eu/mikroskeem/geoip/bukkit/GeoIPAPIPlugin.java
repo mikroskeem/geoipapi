@@ -15,6 +15,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.nio.file.Path;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 /**
@@ -31,7 +32,7 @@ public final class GeoIPAPIPlugin extends JavaPlugin {
         Path databaseFolder = getDataFolder().toPath().resolve("database");
         Path databaseFile;
         try {
-            databaseFile = GeoIPDownloader.setupDatabase(databaseFolder);
+            databaseFile = GeoIPDownloader.setupDatabase(null, databaseFolder);
         } catch (Exception e) {
             getSLF4JLogger().error("Failed to set up GeoIP database! Disabling plugin", e);
             shouldEnable = false;
@@ -41,6 +42,8 @@ public final class GeoIPAPIPlugin extends JavaPlugin {
         // Set up API
         api = new GeoIPAPIImpl(databaseFile);
         try {
+            api.initializeDatabase();
+            api.setupUpdater(2, TimeUnit.DAYS);
             ImplInjector.initialize();
             ImplInjector.setApi(api);
         } catch (Exception e) {
