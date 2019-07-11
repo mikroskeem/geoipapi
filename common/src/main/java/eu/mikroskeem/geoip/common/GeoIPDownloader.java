@@ -101,9 +101,10 @@ public final class GeoIPDownloader {
             if (entry == null)
                 throw new IOException("Could not find " + DATABASE_FILE_NAME_IN_ARCHIVE + " from " + DATABASE_URL);
 
-            ReadableByteChannel channel = Channels.newChannel(tarStream);
-            try (FileChannel fileChannel = new FileOutputStream(databaseFile.toFile()).getChannel()) {
-                fileChannel.transferFrom(channel, 0, Long.MAX_VALUE);
+            try (ReadableByteChannel tarChannel = Channels.newChannel(tarStream)) {
+                try (FileChannel fileChannel = new FileOutputStream(databaseFile.toFile()).getChannel()) {
+                    fileChannel.transferFrom(tarChannel, 0, Long.MAX_VALUE);
+                }
             }
         } catch (ConnectException e) {
             throw new IOException("Failed to connect to " + DATABASE_URL, e);
