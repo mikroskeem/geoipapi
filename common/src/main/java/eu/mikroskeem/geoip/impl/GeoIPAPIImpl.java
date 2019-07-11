@@ -36,7 +36,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @author Mark Vainomaa
  */
 public class GeoIPAPIImpl implements GeoIPAPI {
-    private final static Logger logger = LoggerFactory.getLogger(GeoIPAPIImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(GeoIPAPIImpl.class);
     private final ExecutorService executorService = new ForkJoinPool();
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     private final Path databaseFile;

@@ -35,18 +35,18 @@ import java.util.zip.GZIPInputStream;
  * @author Mark Vainomaa
  */
 public final class GeoIPDownloader {
-    private final static Logger logger = LoggerFactory.getLogger(GeoIPDownloader.class);
-    private final static MessageDigest md5Digest;
+    private static final Logger logger = LoggerFactory.getLogger(GeoIPDownloader.class);
+    private static final MessageDigest md5Digest;
 
     /* The URL where Geo IP database will be downloaded */
-    private final static String DATABASE_URL = "https://geolite.maxmind.com/download/geoip/database/GeoLite2-Country.tar.gz";
-    private final static String DATABASE_URL_MD5 = "https://geolite.maxmind.com/download/geoip/database/GeoLite2-Country.tar.gz.md5";
+    private static final String DATABASE_URL = "https://geolite.maxmind.com/download/geoip/database/GeoLite2-Country.tar.gz";
+    private static final String DATABASE_URL_MD5 = "https://geolite.maxmind.com/download/geoip/database/GeoLite2-Country.tar.gz.md5";
     /* GeoIP database name on local filesystem */
-    private final static String DATABASE_FILE_NAME = "geoip-country.db";
+    private static final String DATABASE_FILE_NAME = "geoip-country.db";
     /* Last downloaded archive md5sum */
-    public final static String LAST_ARCHIVE_MD5 = "last-downloaded.md5";
+    public static final String LAST_ARCHIVE_MD5 = "last-downloaded.md5";
     /* GeoIP database name in archive */
-    private final static String DATABASE_FILE_NAME_IN_ARCHIVE = "GeoLite2-Country.mmdb";
+    private static final String DATABASE_FILE_NAME_IN_ARCHIVE = "GeoLite2-Country.mmdb";
 
     /**
      * Sets up database to specified directory

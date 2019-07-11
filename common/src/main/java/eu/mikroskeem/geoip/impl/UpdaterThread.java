@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
  * @author Mark Vainomaa
  */
 public class UpdaterThread extends Thread {
-    private final static Logger logger = LoggerFactory.getLogger(UpdaterThread.class);
+    private static final Logger logger = LoggerFactory.getLogger(UpdaterThread.class);
     private final long updateCheckInterval;
     private final GeoIPAPIImpl apiImpl;
 
