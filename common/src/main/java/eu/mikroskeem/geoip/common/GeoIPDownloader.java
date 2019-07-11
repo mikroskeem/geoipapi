@@ -94,7 +94,7 @@ public final class GeoIPDownloader {
         try (TarArchiveInputStream tarStream = new TarArchiveInputStream(new GZIPInputStream(new ByteArrayInputStream(databaseArchive)))) {
             TarArchiveEntry entry = null;
             while ((entry = tarStream.getNextTarEntry()) != null) {
-                if (entry.isFile() && entry.getName().endsWith("GeoLite2-Country.mmdb"))
+                if (entry.isFile() && entry.getName().endsWith(DATABASE_FILE_NAME_IN_ARCHIVE))
                     break;
             }
 
