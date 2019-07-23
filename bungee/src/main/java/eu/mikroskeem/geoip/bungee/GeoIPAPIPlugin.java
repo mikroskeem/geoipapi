@@ -11,6 +11,7 @@ import eu.mikroskeem.geoip.impl.GeoIPAPIImpl;
 import eu.mikroskeem.geoip.impl.ImplInjector;
 import net.md_5.bungee.api.plugin.Plugin;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 
@@ -26,9 +27,14 @@ public final class GeoIPAPIPlugin extends Plugin {
         // Set up database
         getSLF4JLogger().info("Setting up GeoIP database...");
         Path databaseFolder = getDataFolder().toPath().resolve("database");
+        Path hashIgnoreFile = getDataFolder().toPath().resolve(".ignorehash");
+        boolean ignoreHash = Files.exists(hashIgnoreFile);
         Path databaseFile;
         try {
-            databaseFile = GeoIPDownloader.setupDatabase(null, databaseFolder);
+            if (ignoreHash) {
+                getSLF4JLogger().warn("Ignoring GeoIP database checksum mismatch");
+            }
+            databaseFile = GeoIPDownloader.setupDatabase(null, databaseFolder, !ignoreHash);
         } catch (Exception e) {
             getSLF4JLogger().error("Failed to set up GeoIP database! Disabling plugin", e);
             shouldEnable = false;
@@ -39,7 +45,7 @@ public final class GeoIPAPIPlugin extends Plugin {
         api = new GeoIPAPIImpl(databaseFile);
         try {
             api.initializeDatabase();
-            api.setupUpdater(2, TimeUnit.DAYS);
+            api.setupUpdater(!ignoreHash, 2, TimeUnit.DAYS);
             ImplInjector.initialize();
             ImplInjector.setApi(api);
         } catch (Exception e) {

@@ -14,6 +14,7 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -30,9 +31,14 @@ public final class GeoIPAPIPlugin extends JavaPlugin {
         // Set up database
         getSLF4JLogger().info("Setting up GeoIP database...");
         Path databaseFolder = getDataFolder().toPath().resolve("database");
+        Path hashIgnoreFile = getDataFolder().toPath().resolve(".ignorehash");
+        boolean ignoreHash = Files.exists(hashIgnoreFile);
         Path databaseFile;
         try {
-            databaseFile = GeoIPDownloader.setupDatabase(null, databaseFolder);
+            if (ignoreHash) {
+                getSLF4JLogger().warn("Ignoring GeoIP database checksum mismatch");
+            }
+            databaseFile = GeoIPDownloader.setupDatabase(null, databaseFolder, !ignoreHash);
         } catch (Exception e) {
             getSLF4JLogger().error("Failed to set up GeoIP database! Disabling plugin", e);
             shouldEnable = false;
@@ -43,7 +49,7 @@ public final class GeoIPAPIPlugin extends JavaPlugin {
         api = new GeoIPAPIImpl(databaseFile);
         try {
             api.initializeDatabase();
-            api.setupUpdater(2, TimeUnit.DAYS);
+            api.setupUpdater(!ignoreHash, 2, TimeUnit.DAYS);
             ImplInjector.initialize();
             ImplInjector.setApi(api);
         } catch (Exception e) {

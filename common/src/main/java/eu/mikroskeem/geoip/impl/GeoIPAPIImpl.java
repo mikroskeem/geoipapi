@@ -93,12 +93,12 @@ public class GeoIPAPIImpl implements GeoIPAPI {
         this.initialized = true;
     }
 
-    public void setupUpdater(long interval, TimeUnit timeUnit) {
+    public void setupUpdater(boolean checkHash, long interval, TimeUnit timeUnit) {
         if (this.updaterThread != null) {
             return;
         }
 
-        this.updaterThread = new UpdaterThread(this, interval, timeUnit);
+        this.updaterThread = new UpdaterThread(this, checkHash, interval, timeUnit);
         this.updaterThread.start();
     }
 

@@ -23,11 +23,13 @@ import java.util.concurrent.TimeUnit;
  */
 public class UpdaterThread extends Thread {
     private static final Logger logger = LoggerFactory.getLogger(UpdaterThread.class);
+    private final boolean checkHash;
     private final long updateCheckInterval;
     private final GeoIPAPIImpl apiImpl;
 
-    public UpdaterThread(GeoIPAPIImpl apiImpl, long interval, TimeUnit timeUnit) {
+    public UpdaterThread(GeoIPAPIImpl apiImpl, boolean checkHash, long interval, TimeUnit timeUnit) {
         super("GeoIPAPI database updater");
+        this.checkHash = checkHash;
         this.updateCheckInterval = timeUnit.toMillis(interval);
         this.apiImpl = apiImpl;
     }
@@ -69,7 +71,7 @@ public class UpdaterThread extends Thread {
                 logger.info("GeoIP database update is available, downloading...");
                 try {
                     Path tempDirectory = Files.createTempDirectory("geoipapi-dbupdate-");
-                    databaseUpdateFile = GeoIPDownloader.setupDatabase(remoteDatabaseHash, tempDirectory);
+                    databaseUpdateFile = GeoIPDownloader.setupDatabase(remoteDatabaseHash, tempDirectory, checkHash);
                     logger.info("Done! Updating database shortly...");
                 } catch (IOException e) {
                     logger.warn("Failed to download update!", e);

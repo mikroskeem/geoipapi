@@ -53,9 +53,10 @@ public final class GeoIPDownloader {
      *
      * @param remoteHash Expected database archive md5 checksum,.
      * @param directory Directory where database should be in
+     * @param checkHash Whether checksum should be checked
      * @throws IOException When any I/O error happens
      */
-    public static Path setupDatabase(String remoteHash, Path directory) throws IOException {
+    public static Path setupDatabase(String remoteHash, Path directory, boolean checkHash) throws IOException {
         Files.createDirectories(directory);
 
         Path databaseFile = directory.resolve(DATABASE_FILE_NAME);
@@ -85,9 +86,15 @@ public final class GeoIPDownloader {
         String localHash = toHexString(localHashRaw);
 
         // Compare
+        // Note: apparently MaxMind's checksum is unreliable, http://web.archive.org/web/20190723150206/https:/twitter.com/_mikroskeem/status/1153673166834864130
         if (!localHash.equalsIgnoreCase(remoteHash)) {
-            // Does not match, error out
-            throw new IOException(String.format("Local database archive checksum does not match remote (%s != %s)!", localHash, remoteHash));
+            // Does not match
+            String message = String.format("Local database archive checksum does not match remote (%s != %s)!", localHash, remoteHash);
+            if (checkHash) {
+                throw new IOException(message);
+            } else {
+                logger.warn(message);
+            }
         }
 
         // Download
