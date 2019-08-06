@@ -9,6 +9,7 @@ package eu.mikroskeem.geoip.bungee;
 import eu.mikroskeem.geoip.common.GeoIPDownloader;
 import eu.mikroskeem.geoip.impl.GeoIPAPIImpl;
 import eu.mikroskeem.geoip.impl.ImplInjector;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
 
 import java.nio.file.Files;
@@ -56,8 +57,9 @@ public final class GeoIPAPIPlugin extends Plugin {
 
         getSLF4JLogger().info("GeoIP API initialized. API data is provided by MaxMind");
 
-        // Register commands
+        // Register commands and event handlers
         getProxy().getPluginManager().registerCommand(this, new GeoIpLookupCommand());
+        getProxy().getPluginManager().registerListener(this, new PlayerConnectionListener());
     }
 
     @Override
@@ -74,5 +76,9 @@ public final class GeoIPAPIPlugin extends Plugin {
             return;
 
         api.close();
+    }
+
+    public static GeoIPAPIPlugin getInstance() {
+        return (GeoIPAPIPlugin) ProxyServer.getInstance().getPluginManager().getPlugin("GeoIPAPI");
     }
 }

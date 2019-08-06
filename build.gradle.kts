@@ -33,6 +33,11 @@ subprojects {
     apply(plugin = "java")
     apply(plugin = "net.minecrell.licenser")
 
+    java {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
     license {
         header = rootProject.file("etc/HEADER")
         filter.include("**/*.java")
