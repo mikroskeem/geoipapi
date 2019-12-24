@@ -65,7 +65,7 @@ public class GeoIPAPIImpl implements GeoIPAPI {
 
         try {
             lock.readLock().lock();
-            return Optional.of(dbReader.country(address).getCountry().getIsoCode());
+            return Optional.ofNullable(dbReader.country(address).getCountry().getIsoCode());
         } catch (AddressNotFoundException e) {
             return Optional.empty();
         } catch (IOException | GeoIp2Exception e) {
@@ -75,7 +75,7 @@ public class GeoIPAPIImpl implements GeoIPAPI {
         }
     }
 
-    private DatabaseReader initializeReader(Path file) {
+    private DatabaseReader initializeReader() {
         logger.debug("Initializing database reader");
         try {
             return new DatabaseReader.Builder(databaseFile.toFile()).build();
@@ -89,7 +89,7 @@ public class GeoIPAPIImpl implements GeoIPAPI {
             return;
         }
 
-        this.dbReader = initializeReader(databaseFile);
+        this.dbReader = initializeReader();
         this.initialized = true;
     }
 
@@ -149,7 +149,7 @@ public class GeoIPAPIImpl implements GeoIPAPI {
 
             // Move succeeded, replace reader and clear cache
             try {
-                this.dbReader = initializeReader(databaseFile);
+                this.dbReader = initializeReader();
             } catch (Exception e) {
                 this.dbReader = oldReader;
                 logger.error("Failed to replace GeoIP database reader, using old reader", e);
