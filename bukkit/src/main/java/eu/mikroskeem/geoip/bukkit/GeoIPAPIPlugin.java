@@ -28,6 +28,15 @@ public final class GeoIPAPIPlugin extends JavaPlugin {
 
     @Override
     public void onLoad() {
+        // Load configuration
+        saveDefaultConfig();
+        String licenseKey = getConfig().getString("geolite_license_key");
+        if (licenseKey == null || licenseKey.isEmpty()) {
+            getSLF4JLogger().error("License key is not set, unable to download the database from MaxMind!");
+            shouldEnable = false;
+            return;
+        }
+
         // Set up database
         getSLF4JLogger().info("Setting up GeoIP database...");
         Path databaseFolder = getDataFolder().toPath().resolve("database");
@@ -38,7 +47,7 @@ public final class GeoIPAPIPlugin extends JavaPlugin {
             if (ignoreHash) {
                 getSLF4JLogger().warn("Ignoring GeoIP database checksum mismatch");
             }
-            databaseFile = GeoIPDownloader.setupDatabase(null, databaseFolder, !ignoreHash);
+            databaseFile = GeoIPDownloader.setupDatabase(null, databaseFolder, !ignoreHash, licenseKey);
         } catch (Exception e) {
             getSLF4JLogger().error("Failed to set up GeoIP database! Disabling plugin", e);
             shouldEnable = false;
@@ -46,7 +55,7 @@ public final class GeoIPAPIPlugin extends JavaPlugin {
         }
 
         // Set up API
-        api = new GeoIPAPIImpl(databaseFile);
+        api = new GeoIPAPIImpl(databaseFile, licenseKey);
         try {
             api.initializeDatabase();
             api.setupUpdater(!ignoreHash, 2, TimeUnit.DAYS);

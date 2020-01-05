@@ -11,7 +11,13 @@ import eu.mikroskeem.geoip.impl.GeoIPAPIImpl;
 import eu.mikroskeem.geoip.impl.ImplInjector;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
+import net.md_5.bungee.config.Configuration;
+import net.md_5.bungee.config.ConfigurationProvider;
+import net.md_5.bungee.config.YamlConfiguration;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
@@ -25,6 +31,24 @@ public final class GeoIPAPIPlugin extends Plugin {
 
     @Override
     public void onLoad() {
+        // Load configuration
+        saveDefaultConfig();
+        Configuration config;
+        try {
+            config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(new File(getDataFolder(), "config.yml"));
+        } catch (IOException e) {
+            getSLF4JLogger().error("Failed to load configuration", e);
+            shouldEnable = false;
+            return;
+        }
+
+        String licenseKey = config.getString("geolite_license_key");
+        if (licenseKey == null || licenseKey.isEmpty()) {
+            getSLF4JLogger().error("License key is not set, unable to download the database from MaxMind!");
+            shouldEnable = false;
+            return;
+        }
+
         // Set up database
         getSLF4JLogger().info("Setting up GeoIP database...");
         Path databaseFolder = getDataFolder().toPath().resolve("database");
@@ -35,7 +59,7 @@ public final class GeoIPAPIPlugin extends Plugin {
             if (ignoreHash) {
                 getSLF4JLogger().warn("Ignoring GeoIP database checksum mismatch");
             }
-            databaseFile = GeoIPDownloader.setupDatabase(null, databaseFolder, !ignoreHash);
+            databaseFile = GeoIPDownloader.setupDatabase(null, databaseFolder, !ignoreHash, licenseKey);
         } catch (Exception e) {
             getSLF4JLogger().error("Failed to set up GeoIP database! Disabling plugin", e);
             shouldEnable = false;
@@ -43,7 +67,7 @@ public final class GeoIPAPIPlugin extends Plugin {
         }
 
         // Set up API
-        api = new GeoIPAPIImpl(databaseFile);
+        api = new GeoIPAPIImpl(databaseFile, licenseKey);
         try {
             api.initializeDatabase();
             api.setupUpdater(!ignoreHash, 2, TimeUnit.DAYS);
@@ -80,5 +104,17 @@ public final class GeoIPAPIPlugin extends Plugin {
 
     public static GeoIPAPIPlugin getInstance() {
         return (GeoIPAPIPlugin) ProxyServer.getInstance().getPluginManager().getPlugin("GeoIPAPI");
+    }
+
+    private void saveDefaultConfig() {
+        try (InputStream defaultResource = getResourceAsStream("config.yml")) {
+            File configFile = new File(getDataFolder(), "config.yml");
+            if (!configFile.exists() && defaultResource != null) {
+                configFile.getParentFile().mkdirs();
+                Files.copy(defaultResource, configFile.toPath());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

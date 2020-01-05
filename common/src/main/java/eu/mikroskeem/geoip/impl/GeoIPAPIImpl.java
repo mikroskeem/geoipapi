@@ -40,13 +40,15 @@ public class GeoIPAPIImpl implements GeoIPAPI {
     private final ExecutorService executorService = new ForkJoinPool();
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     private final Path databaseFile;
+    private final String licenseKey;
     private final ExpiringMap<InetAddress, Optional<String>> cache;
     private boolean initialized = false;
     private DatabaseReader dbReader = null;
     private Thread updaterThread = null;
 
-    public GeoIPAPIImpl(Path databaseFile, long expires, TimeUnit timeUnit) {
+    public GeoIPAPIImpl(Path databaseFile, String licenseKey, long expires, TimeUnit timeUnit) {
         this.databaseFile = databaseFile;
+        this.licenseKey = licenseKey;
         this.cache = ExpiringMap.builder()
                 .expirationPolicy(ExpirationPolicy.ACCESSED)
                 .expiration(expires, timeUnit)
@@ -54,8 +56,8 @@ public class GeoIPAPIImpl implements GeoIPAPI {
                 .build();
     }
 
-    public GeoIPAPIImpl(Path databaseFile) {
-        this(databaseFile, 5, TimeUnit.MINUTES);
+    public GeoIPAPIImpl(Path databaseFile, String licenseKey) {
+        this(databaseFile, licenseKey, 5, TimeUnit.MINUTES);
     }
 
     private Optional<String> loadCountry(InetAddress address) {
@@ -98,7 +100,7 @@ public class GeoIPAPIImpl implements GeoIPAPI {
             return;
         }
 
-        this.updaterThread = new UpdaterThread(this, checkHash, interval, timeUnit);
+        this.updaterThread = new UpdaterThread(this, licenseKey, checkHash, interval, timeUnit);
         this.updaterThread.start();
     }
 

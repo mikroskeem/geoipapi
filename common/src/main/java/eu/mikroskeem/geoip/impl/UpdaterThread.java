@@ -23,12 +23,14 @@ import java.util.concurrent.TimeUnit;
  */
 public class UpdaterThread extends Thread {
     private static final Logger logger = LoggerFactory.getLogger(UpdaterThread.class);
+    private final String licenseKey;
     private final boolean checkHash;
     private final long updateCheckInterval;
     private final GeoIPAPIImpl apiImpl;
 
-    public UpdaterThread(GeoIPAPIImpl apiImpl, boolean checkHash, long interval, TimeUnit timeUnit) {
+    public UpdaterThread(GeoIPAPIImpl apiImpl, String licenseKey, boolean checkHash, long interval, TimeUnit timeUnit) {
         super("GeoIPAPI database updater");
+        this.licenseKey = licenseKey;
         this.checkHash = checkHash;
         this.updateCheckInterval = timeUnit.toMillis(interval);
         this.apiImpl = apiImpl;
@@ -55,7 +57,7 @@ public class UpdaterThread extends Thread {
 
                 // Get remote database hash
                 try {
-                    remoteDatabaseHash = GeoIPDownloader.getRemoteDatabaseMd5Hash();
+                    remoteDatabaseHash = GeoIPDownloader.getRemoteDatabaseMd5Hash(licenseKey);
                 } catch (IOException e) {
                     logger.warn("Failed to check for database update: unable to get remote database md5sum", e);
                     break update;
@@ -71,7 +73,7 @@ public class UpdaterThread extends Thread {
                 logger.info("GeoIP database update is available, downloading...");
                 try {
                     Path tempDirectory = Files.createTempDirectory("geoipapi-dbupdate-");
-                    databaseUpdateFile = GeoIPDownloader.setupDatabase(remoteDatabaseHash, tempDirectory, checkHash);
+                    databaseUpdateFile = GeoIPDownloader.setupDatabase(remoteDatabaseHash, tempDirectory, checkHash, licenseKey);
                     logger.info("Done! Updating database shortly...");
                 } catch (IOException e) {
                     logger.warn("Failed to download update!", e);

@@ -39,8 +39,8 @@ public final class GeoIPDownloader {
     private static final MessageDigest md5Digest;
 
     /* The URL where Geo IP database will be downloaded */
-    private static final String DATABASE_URL = "https://geolite.maxmind.com/download/geoip/database/GeoLite2-Country.tar.gz";
-    private static final String DATABASE_URL_MD5 = "https://geolite.maxmind.com/download/geoip/database/GeoLite2-Country.tar.gz.md5";
+    private static final String DATABASE_URL = "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country&license_key=@LICENSE_KEY@&suffix=tar.gz";
+    private static final String DATABASE_URL_MD5 = "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country&license_key=@LICENSE_KEY@&suffix=tar.gz.md5";
     /* GeoIP database name on local filesystem */
     private static final String DATABASE_FILE_NAME = "geoip-country.db";
     /* Last downloaded archive md5sum */
@@ -56,7 +56,7 @@ public final class GeoIPDownloader {
      * @param checkHash Whether checksum should be checked
      * @throws IOException When any I/O error happens
      */
-    public static Path setupDatabase(String remoteHash, Path directory, boolean checkHash) throws IOException {
+    public static Path setupDatabase(String remoteHash, Path directory, boolean checkHash, String licenseKey) throws IOException {
         Files.createDirectories(directory);
 
         Path databaseFile = directory.resolve(DATABASE_FILE_NAME);
@@ -67,12 +67,12 @@ public final class GeoIPDownloader {
 
         // Download md5 checksum if not set
         if (remoteHash == null) {
-            remoteHash = getRemoteDatabaseMd5Hash();
+            remoteHash = getRemoteDatabaseMd5Hash(licenseKey);
         }
 
         // Download database
         byte[] databaseArchive;
-        try (InputStream download = new URL(DATABASE_URL).openStream()) {
+        try (InputStream download = new URL(DATABASE_URL.replace("@LICENSE_KEY@", licenseKey)).openStream()) {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             byte[] buf = new byte[8192];
             for (int n; (n = download.read(buf)) > 0;) {
@@ -123,8 +123,8 @@ public final class GeoIPDownloader {
         return databaseFile;
     }
 
-    public static String getRemoteDatabaseMd5Hash() throws IOException {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new URL(DATABASE_URL_MD5).openStream()))) {
+    public static String getRemoteDatabaseMd5Hash(String licenseKey) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new URL(DATABASE_URL_MD5.replace("@LICENSE_KEY@", licenseKey)).openStream()))) {
             return reader.lines().collect(Collectors.joining("\n")).trim();
         } catch (ConnectException e) {
             throw new IOException("Failed to connect to " + DATABASE_URL_MD5, e);
