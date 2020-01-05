@@ -6,7 +6,6 @@
 
 package eu.mikroskeem.geoip.impl;
 
-
 import com.maxmind.geoip2.DatabaseReader;
 import com.maxmind.geoip2.exception.AddressNotFoundException;
 import com.maxmind.geoip2.exception.GeoIp2Exception;
@@ -28,8 +27,11 @@ import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
@@ -42,9 +44,14 @@ public class GeoIPAPIImpl implements GeoIPAPI {
     private final Path databaseFile;
     private final String licenseKey;
     private final ExpiringMap<InetAddress, Optional<String>> cache;
+    private final ScheduledExecutorService updaterTaskExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
+        Thread thread = new Thread(r);
+        thread.setName("GeoIPAPI database updater task");
+        return thread;
+    });
+    private final AtomicBoolean updaterTaskScheduled = new AtomicBoolean(false);
     private boolean initialized = false;
     private DatabaseReader dbReader = null;
-    private Thread updaterThread = null;
 
     public GeoIPAPIImpl(Path databaseFile, String licenseKey, long expires, TimeUnit timeUnit) {
         this.databaseFile = databaseFile;
@@ -96,12 +103,15 @@ public class GeoIPAPIImpl implements GeoIPAPI {
     }
 
     public void setupUpdater(boolean checkHash, long interval, TimeUnit timeUnit) {
-        if (this.updaterThread != null) {
-            return;
+        synchronized (this.updaterTaskScheduled) {
+            if (this.updaterTaskScheduled.get()) {
+                return;
+            }
+            this.updaterTaskScheduled.set(true);
         }
 
-        this.updaterThread = new UpdaterThread(this, licenseKey, checkHash, interval, timeUnit);
-        this.updaterThread.start();
+        DatabaseUpdaterTask task = new DatabaseUpdaterTask(this, licenseKey, checkHash, interval, timeUnit);
+        this.updaterTaskExecutor.scheduleAtFixedRate(task, 0, interval, timeUnit);
     }
 
     public void updateDatabase(ThrowingFunction<UpdateInfo, Boolean, Exception> databaseUpdater) {
@@ -214,9 +224,19 @@ public class GeoIPAPIImpl implements GeoIPAPI {
     }
 
     public void close() {
+        updaterTaskExecutor.shutdown();
+        try {
+            if (!updaterTaskExecutor.awaitTermination(500, TimeUnit.MILLISECONDS)) {
+                updaterTaskExecutor.shutdownNow();
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to shut down database update thread", e);
+        }
         executorService.shutdown();
         try {
-            executorService.awaitTermination(500, TimeUnit.MILLISECONDS);
+            if (!executorService.awaitTermination(500, TimeUnit.MILLISECONDS)) {
+                executorService.shutdownNow();
+            }
         } catch (Exception e) {
             logger.warn("Failed to shut down database thread pool", e);
         }
