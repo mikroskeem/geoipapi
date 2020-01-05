@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Mark Vainomaa
+ * Copyright (c) 2019-2020 Mark Vainomaa
  *
  * This source code is proprietary software and must not be distributed and/or copied without the express permission of Mark Vainomaa
  */
