@@ -18,9 +18,9 @@ extra["paperApiVersion"] = "1.14.2-R0.1-SNAPSHOT"
 extra["waterfallApiVersion"] = "1.14-SNAPSHOT"
 
 allprojects {
-    group = "eu.mikroskeem.cu"
+    group = "eu.mikroskeem"
     version = "0.0.1-SNAPSHOT"
-    
+
     repositories {
         mavenLocal()
         mavenCentral()
