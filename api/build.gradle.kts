@@ -30,11 +30,11 @@ publishing {
     }
 
     repositories {
-        if (rootProject.hasProperty("crafteduniverse.repository.deploy.username") && rootProject.hasProperty("crafteduniverse.repository.deploy.password")) {
-            maven("https://maven.cu-mc.com/repository/cu-repo") {
+        if (rootProject.hasProperty("wutee.repository.deploy.username") && rootProject.hasProperty("wutee.repository.deploy.password")) {
+            maven("https://repo.wut.ee/repository/mikroskeem-repo") {
                 credentials {
-                    username = rootProject.property("crafteduniverse.repository.deploy.username") as String
-                    password = rootProject.property("crafteduniverse.repository.deploy.password") as String
+                    username = rootProject.property("wutee.repository.deploy.username") as String
+                    password = rootProject.property("wutee.repository.deploy.password") as String
                 }
             }
         }
