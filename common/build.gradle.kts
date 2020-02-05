@@ -1,5 +1,6 @@
 dependencies {
     compile(project(":api"))
+    compile("eu.mikroskeem:implinjector:${rootProject.extra["implInjectorVersion"]}")
     implementation("org.slf4j:slf4j-api:${rootProject.extra["slf4jApiVersion"]}")
     implementation("com.maxmind.geoip2:geoip2:${rootProject.extra["geoipVersion"]}") {
         exclude(module = "httpcore")

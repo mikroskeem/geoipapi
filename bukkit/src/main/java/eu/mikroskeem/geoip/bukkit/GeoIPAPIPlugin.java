@@ -25,9 +25,10 @@
 
 package eu.mikroskeem.geoip.bukkit;
 
+import eu.mikroskeem.geoip.GeoIPAPI;
 import eu.mikroskeem.geoip.common.GeoIPDownloader;
 import eu.mikroskeem.geoip.impl.GeoIPAPIImpl;
-import eu.mikroskeem.geoip.impl.ImplInjector;
+import eu.mikroskeem.implinjector.ImplInjector;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.command.TabCompleter;
@@ -78,8 +79,7 @@ public final class GeoIPAPIPlugin extends JavaPlugin {
         try {
             api.initializeDatabase();
             api.setupUpdater(!ignoreHash, 2, TimeUnit.DAYS);
-            ImplInjector.initialize();
-            ImplInjector.setApi(api);
+            ImplInjector.inject(GeoIPAPI.class, "INSTANCE", api);
         } catch (Exception e) {
             getSLF4JLogger().error("Failed to initialize API", e);
             shouldEnable = false;

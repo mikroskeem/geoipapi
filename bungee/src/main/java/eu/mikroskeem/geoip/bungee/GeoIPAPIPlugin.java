@@ -25,9 +25,10 @@
 
 package eu.mikroskeem.geoip.bungee;
 
+import eu.mikroskeem.geoip.GeoIPAPI;
 import eu.mikroskeem.geoip.common.GeoIPDownloader;
 import eu.mikroskeem.geoip.impl.GeoIPAPIImpl;
-import eu.mikroskeem.geoip.impl.ImplInjector;
+import eu.mikroskeem.implinjector.ImplInjector;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
@@ -90,8 +91,7 @@ public final class GeoIPAPIPlugin extends Plugin {
         try {
             api.initializeDatabase();
             api.setupUpdater(!ignoreHash, 2, TimeUnit.DAYS);
-            ImplInjector.initialize();
-            ImplInjector.setApi(api);
+            ImplInjector.inject(GeoIPAPI.class, "INSTANCE", api);
         } catch (Exception e) {
             getSLF4JLogger().error("Failed to initialize API", e);
             shouldEnable = false;

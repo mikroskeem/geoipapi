@@ -6,6 +6,7 @@ plugins {
     id("com.github.johnrengelman.shadow") version "5.0.0"
 }
 
+extra["implInjectorVersion"] = "0.0.1"
 extra["checkerQualVersion"] = "2.8.1"
 extra["geoipVersion"] = "2.12.0"
 extra["commonsCompressVersion"] = "1.18"
@@ -26,6 +27,7 @@ allprojects {
         mavenCentral()
 
         maven("https://papermc.io/repo/repository/maven-public/")
+        maven("https://repo.wut.ee/repository/mikroskeem-repo")
     }
 }
 
@@ -53,6 +55,7 @@ dependencies {
 val shadowJar by tasks.getting(ShadowJar::class) {
     val target = "eu.mikroskeem.geoip.lib"
     val relocations = listOf(
+            "eu.mikroskeem.implinjector",
             "com.fasterxml.jackson",
             "com.maxmind",
             "com.pivovarit.function",
