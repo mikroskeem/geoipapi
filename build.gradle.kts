@@ -6,7 +6,7 @@ plugins {
     id("com.github.johnrengelman.shadow") version "5.0.0"
 }
 
-extra["implInjectorVersion"] = "0.0.1"
+extra["implInjectorVersion"] = "0.0.2"
 extra["checkerQualVersion"] = "2.8.1"
 extra["geoipVersion"] = "2.12.0"
 extra["commonsCompressVersion"] = "1.18"
@@ -65,6 +65,24 @@ val shadowJar by tasks.getting(ShadowJar::class) {
     relocations.forEach {
         relocate(it, "$target.$it")
     }
+
+    exclude("META-INF/maven/**")
+    exclude("com/google/errorprone/**")
+    exclude("org/checkerframework/**")
+
+    exclude("org/apache/commons/compress/compressors/**") // No compressing needed
+    exclude("org/apache/commons/compress/archivers/jar/**")
+    exclude("org/apache/commons/compress/archivers/sevenz/**")
+    exclude("org/apache/commons/compress/archivers/dump/**")
+    exclude("org/apache/commons/compress/archivers/cpio/**")
+    exclude("org/apache/commons/compress/archivers/ar/**")
+    exclude("org/apache/commons/compress/archivers/arj/**")
+}
+
+val shadowJarNoRelocation by tasks.creating(com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar::class) {
+    archiveClassifier.set("all-noreloc")
+    from(sourceSets["main"].output)
+    configurations = listOf(project.configurations["runtimeClasspath"])
 
     exclude("META-INF/maven/**")
     exclude("com/google/errorprone/**")
