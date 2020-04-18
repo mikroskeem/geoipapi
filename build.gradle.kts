@@ -17,6 +17,7 @@ extra["throwableFunctionVersion"] = "1.5.0"
 // Platform versions
 extra["paperApiVersion"] = "1.14.2-R0.1-SNAPSHOT"
 extra["waterfallApiVersion"] = "1.14-SNAPSHOT"
+extra["velocityApiVersion"] = "1.1.0-SNAPSHOT"
 
 allprojects {
     group = "eu.mikroskeem"
@@ -28,6 +29,8 @@ allprojects {
 
         maven("https://papermc.io/repo/repository/maven-public/")
         maven("https://repo.wut.ee/repository/mikroskeem-repo")
+        maven("https://repo.velocitypowered.com/snapshots/")
+        maven("https://repo.spongepowered.org/maven")
     }
 }
 
@@ -50,6 +53,7 @@ subprojects {
 dependencies {
     implementation(project(":bukkit"))
     implementation(project(":bungee"))
+    implementation(project(":velocity"))
 }
 
 val shadowJar by tasks.getting(ShadowJar::class) {
